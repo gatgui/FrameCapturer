@@ -1,4 +1,8 @@
-﻿using System;
+#if UNITY_5_5
+#define UNITY_5_5_OR_ABOVE
+#endif
+
+using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -6,8 +10,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.Rendering;
 #endif // UNITY_EDITOR
-
 
 [AddComponentMenu("FrameCapturer/ExrCapturer")]
 [RequireComponent(typeof(Camera))]
@@ -77,14 +81,26 @@ public class ExrCapturer : MonoBehaviour
             m_frame_buffer.Create();
         }
 
+#if UNITY_5_5_OR_ABOVE
+#if UNITY_EDITOR
+        TierSettings ts = EditorGraphicsSettings.GetTierSettings(BuildTargetGroup.Standalone, Graphics.activeTier);
+        RenderingPath renderingPath = ts.renderingPath;
+#else
+        // Forces 'm_capture_gbuffer' to false
+        RenderingPath renderingPath = RenderingPath.Forward;
+#endif
+#else
+        RenderingPath renderingPath = PlayerSettings.renderingPath;
+#endif
+
         if (m_capture_gbuffer &&
             m_cam.renderingPath != RenderingPath.DeferredShading &&
-            (m_cam.renderingPath == RenderingPath.UsePlayerSettings && PlayerSettings.renderingPath != RenderingPath.DeferredShading))
+            (m_cam.renderingPath == RenderingPath.UsePlayerSettings && renderingPath != RenderingPath.DeferredShading))
         {
             Debug.Log("ExrCapturer: Rendering path must be deferred to use capture_gbuffer mode.");
             m_capture_gbuffer = false;
         }
-        if(m_capture_gbuffer)
+        if (m_capture_gbuffer)
         {
             m_gbuffer = new RenderTexture[4];
             m_rt_gbuffer = new RenderBuffer[4];
