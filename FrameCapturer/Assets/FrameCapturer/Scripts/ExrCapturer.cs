@@ -1,5 +1,8 @@
 #if UNITY_5_5
 #define UNITY_5_5_OR_ABOVE
+#elif UNITY_5_6
+#define UNITY_5_5_OR_ABOVE
+#define UNITY_5_6_OR_ABOVE
 #endif
 
 using System;
